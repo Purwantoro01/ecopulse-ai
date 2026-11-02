@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -18,7 +17,8 @@ export default function HomePage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/meta-ai', {
+      // Menggunakan relative path yang aman untuk struktur Next.js App Router
+      const response = await fetch('./api/meta-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
@@ -27,12 +27,12 @@ export default function HomePage() {
       const data = await response.json();
       
       if (response.ok) {
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.reply || data.content }]);
+        setMessages((prev) => [...prev, { role: 'assistant', content: data.reply || data.content || JSON.stringify(data) }]);
       } else {
-        setMessages((prev) => [...prev, { role: 'assistant', content: `Error: ${data.error || 'Failed to process message.'}` }]);
+        setMessages((prev) => [...prev, { role: 'assistant', content: `Server Response Error: ${data.error || 'Failed to fetch AI data.'}` }]);
       }
     } catch (error) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'Error: Server connection lost.' }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'Gateway Error: Connection refused by internal endpoint.' }]);
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* INTEGRATED CHAT INTERACTION (ASISTEN PINTAR) */}
+        {/* INTEGRATED CHAT INTERACTION */}
         <section id="ai-assistant" className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl">
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-emerald-400">EcoPulse AI Chat Console</h2>
