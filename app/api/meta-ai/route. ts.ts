@@ -14,8 +14,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'API Key Configuration Missing.' }, { status: 500 });
     }
 
-    // Menggunakan endpoint resmi dan struktur data sesuai dengan Meta Playground Anda
-    const aiResponse = await fetch('https://meta.ai', {
+    // Connect directly to the official Meta Model API responses gateway (/v1/responses)
+    const aiResponse = await fetch('https://api.meta.ai/v1/responses', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         input: [
           { role: 'user', content: [{ type: 'text', text: userMessage }] }
         ],
-        stream: false, // Diubah ke false agar respons langsung didapat utuh tanpa streaming kompleks
+        stream: false, 
         temperature: 1,
         max_output_tokens: 32000,
         top_p: 1,
@@ -37,13 +37,16 @@ export async function POST(req: Request) {
       }),
     });
 
-    const data = await aiResponse.json();
-
     if (!aiResponse.ok) {
-      return NextResponse.json({ error: data.error?.message || 'Meta AI Gateway integration failed.' }, { status: aiResponse.status });
+      const errorData = await aiResponse.json().catch(() => ({}));
+      return NextResponse.json({ 
+        error: errorData.error?.message || `Meta AI gateway returned status ${aiResponse.status}` 
+      }, { status: aiResponse.status });
     }
 
-    // Menangkap teks balasan dari struktur data Meta API responses
+    const data = await aiResponse.json();
+
+    // Extract the generated text response safely from the official Meta API response payload structure
     const aiReply = data.output?.choices?.[0]?.message?.content?.[0]?.text || data.reply || 'No response generated.';
     return NextResponse.json({ reply: aiReply });
 
