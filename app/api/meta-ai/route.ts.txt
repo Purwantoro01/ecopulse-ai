@@ -1,36 +1,45 @@
 import { NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { message } = await request.json();
-    const apiKey = process.env.META_AI_API_KEY;
+    // Read the incoming message payload sent from the front-end dashboard (page.tsx)
+    const body = await req.json();
+    const userMessage = body.message;
 
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'API Key tidak ditemukan di server.' },
-        { status: 500 }
-      );
+    if (!userMessage) {
+      return NextResponse.json({ error: 'Message payload is required.' }, { status: 400 });
     }
 
-    const response = await fetch('https://meta.ai', {
+    const apiKey = process.env.KUNCI_API_META_AI;
+    if (!apiKey) {
+      return NextResponse.json({ error: 'API Key Configuration Missing.' }, { status: 500 });
+    }
+
+    // Forwarding the payload request to Meta AI / Muse Wonder endpoint gateway
+    const aiResponse = await fetch('https://meta.ai', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1',
-        messages: [{ role: 'user', content: message }],
+        model: 'llama-3-core',
+        messages: [{ role: 'user', content: userMessage }],
+        temperature: 0.7,
       }),
     });
 
-    const data = await response.json();
-    return NextResponse.json({ reply: data.choices.message.content });
+    const data = await aiResponse.json();
 
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Terjadi kesalahan koneksi jaringan backend.' },
-      { status: 500 }
-    );
+    if (!aiResponse.ok) {
+      return NextResponse.json({ error: data.error?.message || 'AI Gateway integration failed.' }, { status: aiResponse.status });
+    }
+
+    // Extract and send the generated response back to the client interface safely
+    const aiReply = data.choices?.[0]?.message?.content || 'No response generated.';
+    return NextResponse.json({ reply: aiReply });
+
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
