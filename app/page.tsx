@@ -17,8 +17,7 @@ export default function HomePage() {
     setLoading(true);
 
     try {
-      // Menggunakan relative path yang aman untuk struktur Next.js App Router
-      const response = await fetch('./api/meta-ai', {
+      const response = await fetch('/api/meta-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
@@ -27,12 +26,13 @@ export default function HomePage() {
       const data = await response.json();
       
       if (response.ok) {
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.reply || data.content || JSON.stringify(data) }]);
+        const aiText = data.reply || data.content || (data.error ? `Error: ${data.error}` : 'Message processed successfully.');
+        setMessages((prev) => [...prev, { role: 'assistant', content: aiText }]);
       } else {
-        setMessages((prev) => [...prev, { role: 'assistant', content: `Server Response Error: ${data.error || 'Failed to fetch AI data.'}` }]);
+        setMessages((prev) => [...prev, { role: 'assistant', content: `API Error: ${data.error || 'Failed to reach Meta Gateway.'}` }]);
       }
-    } catch (error) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'Gateway Error: Connection refused by internal endpoint.' }]);
+    } catch (error: any) {
+      setMessages((prev) => [...prev, { role: 'assistant', content: `Network Connection Refused: ${error.message || 'Check server status.'}` }]);
     } finally {
       setLoading(false);
     }
@@ -141,3 +141,4 @@ export default function HomePage() {
     </div>
   );
 }
+
