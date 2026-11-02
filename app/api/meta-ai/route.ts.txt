@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    // Read the incoming message payload sent from the front-end dashboard (page.tsx)
     const body = await req.json();
     const userMessage = body.message;
 
@@ -15,28 +14,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'API Key Configuration Missing.' }, { status: 500 });
     }
 
-    // Forwarding the payload request to Meta AI / Muse Wonder endpoint gateway
+    // Menggunakan endpoint resmi dan struktur data sesuai dengan Meta Playground Anda
     const aiResponse = await fetch('https://meta.ai', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'Accept': 'text/event-stream'
       },
       body: JSON.stringify({
-        model: 'llama-3-core',
-        messages: [{ role: 'user', content: userMessage }],
-        temperature: 0.7,
+        model: 'muse-wonder-1.0',
+        input: [
+          { role: 'user', content: [{ type: 'text', text: userMessage }] }
+        ],
+        stream: false, // Diubah ke false agar respons langsung didapat utuh tanpa streaming kompleks
+        temperature: 1,
+        max_output_tokens: 32000,
+        top_p: 1,
+        reasoning: {
+          effort: 'medium'
+        }
       }),
     });
 
     const data = await aiResponse.json();
 
     if (!aiResponse.ok) {
-      return NextResponse.json({ error: data.error?.message || 'AI Gateway integration failed.' }, { status: aiResponse.status });
+      return NextResponse.json({ error: data.error?.message || 'Meta AI Gateway integration failed.' }, { status: aiResponse.status });
     }
 
-    // Extract and send the generated response back to the client interface safely
-    const aiReply = data.choices?.[0]?.message?.content || 'No response generated.';
+    // Menangkap teks balasan dari struktur data Meta API responses
+    const aiReply = data.output?.choices?.[0]?.message?.content?.[0]?.text || data.reply || 'No response generated.';
     return NextResponse.json({ reply: aiReply });
 
   } catch (error: any) {
