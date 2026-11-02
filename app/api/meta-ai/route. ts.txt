@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -14,8 +15,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'API Key Configuration Missing.' }, { status: 500 });
     }
 
-    // Connect directly to the official Meta Model API responses gateway (/v1/responses)
-    const aiResponse = await fetch('https://api.meta.ai/v1/responses', {
+    const aiResponse = await fetch('https://meta.ai', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -46,7 +46,6 @@ export async function POST(req: Request) {
 
     const data = await aiResponse.json();
 
-    // Extract the generated text response safely from the official Meta API response payload structure
     const aiReply = data.output?.choices?.[0]?.message?.content?.[0]?.text || data.reply || 'No response generated.';
     return NextResponse.json({ reply: aiReply });
 
