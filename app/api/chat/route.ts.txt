@@ -1,0 +1,18 @@
+import { NextResponse } from 'next/server';
+
+export async function POST(request: Request) {
+  try {
+    const { message } = await request.json();
+
+    // Automatic response from the EcoPulse AI system
+    const aiReply = `Hello! EcoPulse AI successfully received your message: "${message}". The chat backend is now connected successfully and ready for further development!`;
+
+    return NextResponse.json({ reply: aiReply });
+  } catch (error) {
+    // If a technical error occurs, ensure the response is still JSON so the web doesn't crash
+    return NextResponse.json(
+      { error: 'Failed to process the message on the backend server.' },
+      { status: 500 }
+    );
+  }
+}
