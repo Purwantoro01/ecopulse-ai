@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Send, Bot, User, Sparkles, Activity } from 'lucide-react';
 
 export default function Home() {
@@ -27,9 +28,10 @@ export default function Home() {
       const data = await response.json();
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.reply || 'Respon diproses oleh EcoPulse AI Node.' },
+        { role: 'assistant', content: data.reply || data.error || 'Respon diproses oleh EcoPulse AI Node.' },
       ]);
     } catch (error) {
+      console.error('Chat request failed:', error);
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: 'Terjadi kesalahan koneksi ke server.' },
@@ -43,10 +45,13 @@ export default function Home() {
     <main className="relative min-h-screen text-slate-100 flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950">
       {/* Background Visual Laboratorium Hologram */}
       <div className="absolute inset-0 z-0">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop"
           alt="EcoPulse AI Telemetry Lab Background"
-          className="w-full h-full object-cover object-center opacity-30 filter brightness-90"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center opacity-30 filter brightness-90"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/90" />
       </div>
