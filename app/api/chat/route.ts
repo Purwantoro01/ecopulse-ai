@@ -1,36 +1,152 @@
-import { NextResponse } from 'next/server';
+'use client';
 
-export async function POST(req: Request) {
-  try {
-    const { message } = await req.json();
-    const query = (message || '').toLowerCase();
+import { useState } from 'react';
+import { Send, Bot, User, Sparkles, Activity } from 'lucide-react';
 
-    let reply = "";
+export default function Home() {
+  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    if (query.includes('hino') || query.includes('truck') || query.includes('biodiesel')) {
-      reply = `[EcoPulse Telemetry Hub] Hino 500 Dump Truck Emission Analysis:
-• The use of B35 Biodiesel is projected to reduce Carbon Monoxide emissions by up to 18.4% and Particulate Matter (PM) by 24%.
-• EcoPulse telemetry system optimizes heavy-duty engine combustion cycles to achieve up to 94.2% carbon mitigation efficiency.
-• Recommendation: Install intelligent carbon audit sensors on the primary exhaust manifold.`;
-    } else if (query.includes('porsche') || query.includes('classic') || query.includes('klasik') || query.includes('e-fuel') || query.includes('retrofitting')) {
-      reply = `[EcoPulse Telemetry Hub] Classic Porsche 911 Carrera Retrofitting Analysis:
-• Synthetic Fuel (e-Fuel) integration can minimize carbon footprints toward carbon-neutrality by up to 85% without altering classic piston engine characteristics.
-• ECU remapping powered by EcoPulse AI dynamically adjusts air-fuel compression ratios in real-time.
-• Recommendation: Calibrate the dual fuel injection system and activate continuous emission tracking features.`;
-    } else if (query.includes('94.2') || query.includes('calculation') || query.includes('kalkulasi') || query.includes('efficiency') || query.includes('efisiensi')) {
-      reply = `[EcoPulse Telemetry Hub] 94.2% Mitigation Calculation Algorithm:
-• Calculations are derived from comparing baseline conventional vehicle emissions against Meta Muse AI real-time telemetry optimization.
-• Combined carbon emission reduction (85% e-fuel/B35) + ECU mapping efficiency (9.2%) yields a total mitigation efficiency of 94.2%.`;
-    } else {
-      reply = `[EcoPulse AI Muse Engine] Connected to Meta Telemetry Track.
-Sustainable Automotive Intelligence Analysis:
-• Query: "${message}"
-• Telemetry Evaluation: System initialized and ready to process power efficiency optimizations and carbon cycle mapping.
-• Recommendation: Conduct periodic emission audits to maintain peak energy efficiency performance.`;
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    const userMessage = input.trim();
+    setInput('');
+    setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage }),
+      });
+
+      const data = await response.json();
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: data.reply || 'Response processed by EcoPulse AI Node.' },
+      ]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Connection error to telemetry server.' },
+      ]);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return NextResponse.json({ reply });
-  } catch (error) {
-    return NextResponse.json({ reply: 'An error occurred on the telemetry server.' }, { status: 500 });
-  }
+  return (
+    <main className="relative min-h-screen text-slate-100 flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950">
+      <div 
+        className="absolute inset-0 z-0 opacity-40 pointer-events-none"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 60%),
+            linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 40px 40px, 40px 40px'
+        }}
+      />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="relative z-10 text-center max-w-3xl mb-6 mt-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/40 bg-emerald-950/80 text-emerald-400 text-xs font-semibold tracking-wider uppercase mb-3 shadow-[0_0_20px_rgba(16,185,129,0.3)] backdrop-blur-md">
+          <Sparkles className="w-3.5 h-3.5 animate-pulse text-emerald-400" /> Meta Muse AI Telemetry Track
+        </div>
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-200 to-indigo-300 drop-shadow-[0_0_30px_rgba(16,185,129,0.5)]">
+          ECOPULSE AI
+        </h1>
+        <p className="text-xs md:text-sm font-semibold tracking-widest text-emerald-400 mt-1 uppercase drop-shadow">
+          Luxury & Classic Automotive Sustainability Intelligence
+        </p>
+        <p className="text-slate-300 text-xs md:text-sm mt-2 max-w-xl mx-auto leading-relaxed drop-shadow">
+          Next-generation AI platform bridging luxury vehicle restoration with carbon cycle telemetry analysis and future energy efficiency metrics.
+        </p>
+      </div>
+
+      <div className="relative z-10 w-full max-w-3xl bg-slate-900/90 backdrop-blur-xl border border-emerald-500/40 rounded-2xl shadow-[0_0_60px_rgba(16,185,129,0.15)] overflow-hidden flex flex-col h-[500px]">
+        <div className="px-6 py-3 border-b border-slate-800/90 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="font-mono text-emerald-400 font-semibold">SYSTEM ONLINE</span>
+          </div>
+          <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-300">
+            <Activity className="w-3.5 h-3.5 text-emerald-400" /> Meta Muse API Connected
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-800">
+          {messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center space-y-3">
+              <Bot className="w-12 h-12 text-emerald-400/60 animate-bounce" />
+              <p className="text-sm">Enter vehicle specifications or carbon emission telemetry queries to start.</p>
+            </div>
+          ) : (
+            messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {msg.role !== 'user' && (
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
+                    <Bot className="w-4 h-4 text-emerald-400" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-emerald-600 text-white rounded-tr-none shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                      : 'bg-slate-800/95 border border-slate-700/80 text-slate-100 rounded-tl-none'
+                  }`}
+                >
+                  <p className="text-[10px] font-bold tracking-wider uppercase mb-1 opacity-70">
+                    {msg.role === 'user' ? 'DEVELOPER' : 'ECOPULSE MUSE AI'}
+                  </p>
+                  {msg.content}
+                </div>
+                {msg.role === 'user' && (
+                  <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-slate-300" />
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+          {loading && (
+            <div className="flex gap-3 justify-start">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
+                <Bot className="w-4 h-4 text-emerald-400 animate-spin" />
+              </div>
+              <div className="bg-slate-800/95 border border-slate-700/80 text-slate-300 text-xs rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2">
+                <span>EcoPulse Muse AI is analyzing emission telemetry...</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={sendMessage} className="p-4 border-t border-slate-800/90 bg-slate-950/80 flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Enter engine specs or emission calculation queries..."
+            className="flex-1 bg-slate-950/90 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/60 transition"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white px-5 py-3 rounded-xl font-medium text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-2 shrink-0"
+          >
+            <Send className="w-4 h-4" />
+            <span className="hidden sm:inline">SEND</span>
+          </button>
+        </form>
+      </div>
+    </main>
+  );
 }
