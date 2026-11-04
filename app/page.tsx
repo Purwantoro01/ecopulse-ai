@@ -1,101 +1,131 @@
 
 'use client';
 
-import React, { useState, FormEvent } from 'react';
+import { useState } from 'react';
 
 interface Message {
-  role: 'user' | 'ai';
+  sender: 'DEVELOPER' | 'ECOPULSE MUSE AI';
   text: string;
 }
 
 export default function Home() {
+  const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const sendMessage = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const handleSendMessage = async () => {
+    if (!input.trim() || loading) return;
 
-    const userMessage = input;
+    const userMessage = input.trim();
     setInput('');
-    setError(null);
-    setMessages((prev) => [...prev, { role: 'user', text: userMessage }]);
     setLoading(true);
 
+    setMessages((prev) => [
+      ...prev,
+      { sender: 'DEVELOPER', text: userMessage },
+    ]);
+
     try {
-      const response = await fetch('/api/chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage }),
       });
 
-      if (!response.ok) throw new Error('Network response was not ok');
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
+      const data = await res.json();
 
-      setMessages((prev) => [...prev, { role: 'ai', text: data.reply }]);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+      if (res.ok && data.reply) {
+        setMessages((prev) => [
+          ...prev,
+          { sender: 'ECOPULSE MUSE AI', text: data.reply },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: 'ECOPULSE MUSE AI',
+            text: data.error || 'Gagal mengambil respon dari AI.',
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: 'ECOPULSE MUSE AI',
+          text: 'Terjadi kesalahan koneksi ke server.',
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white p-4 flex flex-col items-center justify-between font-sans">
-      
-      {/* HEADER: Gabungan Eco (Emerald) + Pulse (Neon Red) + Luxury Car */}
-      <header className="w-full max-w-2xl py-6 text-center border-b border-emerald-900/30 flex flex-col items-center gap-3">
-        
-        {/* Ikon Logo SVG Hybrid: Mobil Sport Mewah + Daun Energi Ramah Lingkungan */}
-        <div className="w-24 h-24 bg-gradient-to-br from-slate-900 via-emerald-950/30 to-red-950/30 rounded-2xl flex flex-col items-center justify-center border border-emerald-500/20 shadow-xl shadow-emerald-500/5">
-          <svg className="w-14 h-14 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://w3.org">
-            {/* Jalur Kerangka Mobil Mewah */}
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" stroke="currentColor" d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 001 13v3c0 .6.4 1 1 1h2m10 0a3 3 0 11-6 0m6 0a3 3 0 116 0M4 17a3 3 0 116 0m-6 0h6m10 0h2" />
-            {/* Jalur Aksen Detak Energi Hijau (Eco Leaf Pulse) */}
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" stroke="#10b981" d="M12 14l2-2h-3l2-2" />
-          </svg>
-        </div>
-        
-        {/* Judul Gabungan Sempurna */}
-        <h1 className="text-3xl font-black tracking-widest uppercase">
-          <span className="text-emerald-400">Eco</span>
-          <span className="text-red-500">Pulse</span> 
-          <span className="text-slate-200"> AI</span>
+    <main className="min-h-screen bg-[#050B14] text-white flex flex-col items-center justify-between p-6">
+      <div className="text-center my-6 space-y-2">
+        <h1 className="text-4xl font-extrabold tracking-wider text-emerald-400">
+          ECO<span className="text-rose-500">PULSE</span> AI
         </h1>
-        
-        <p className="text-xs font-bold tracking-widest text-emerald-500 uppercase">Luxury & Classic Automotive Sustainability Intelligence</p>
-        
-        {/* Deskripsi Global Sesuai Konsep Baru Anda */}
-        <p className="text-sm text-slate-400 max-w-md mt-1">
+        <p className="text-xs font-mono text-emerald-300 tracking-widest uppercase">
+          LUXURY & CLASSIC AUTOMOTIVE SUSTAINABILITY INTELLIGENCE
+        </p>
+        <p className="text-xs text-slate-400 max-w-xl mx-auto mt-2">
           Next-generation Meta Muse AI platform bridging premium vehicle restoration with future eco-efficiency metrics and carbon lifecycle analytics.
         </p>
-      </header>
+      </div>
 
-      {/* CHAT DISPLAY */}
-      <section className="flex-1 w-full max-w-2xl my-4 bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 overflow-y-auto flex flex-col gap-3 min-h-[400px] max-h-[550px] shadow-2xl">
-        {messages.length === 0 && (
-          <div className="text-center my-auto flex flex-col items-center gap-2">
-            <p className="text-slate-500 text-sm">System Ready. Ask Meta Muse AI about vehicle carbon audits, eco-restoration tech, or future energy conversions.</p>
-          </div>
-        )}
-        {messages.map((msg, index) => (
-          <div key={index} className={`p-3 rounded-xl max-w-[85%] shadow-md ${msg.role === 'user' ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white self-end rounded-tr-none' : 'bg-slate-800 text-slate-100 self-start rounded-tl-none border border-slate-700/50'}`}>
-            <span className="block text-[10px] font-bold tracking-widest uppercase mb-1 text-emerald-300">{msg.role === 'user' ? 'Developer' : 'EcoPulse Muse AI'}</span>
-            <p className="text-sm leading-relaxed">{msg.text}</p>
-          </div>
-        ))}
-        {loading && <p className="text-emerald-400 animate-pulse text-xs tracking-wider font-semibold">ECOPULSE AI IS ANALYZING AUTOMOTIVE ENERGY INDEX...</p>}
-        {error && <p className="text-red-400 text-sm bg-red-950/40 p-3 rounded-lg border border-red-500/50">System Error: {error}</p>}
-      </section>
+      <div className="w-full max-w-3xl flex-1 flex flex-col bg-[#0A121E] rounded-xl border border-slate-800/80 p-4 shadow-2xl overflow-hidden min-h-[500px]">
+        <div className="flex-1 overflow-y-auto space-y-4 p-4">
+          {messages.length === 0 && (
+            <div className="text-center text-slate-500 my-auto pt-24 text-sm font-mono">
+              System Ready. Ask Meta Muse AI about vehicle carbon audits, eco-restoration tech, or future energy conversions.
+            </div>
+          )}
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`p-3.5 rounded-lg max-w-[85%] text-sm ${
+                msg.sender === 'DEVELOPER'
+                  ? 'ml-auto bg-emerald-600/90 text-white font-medium'
+                  : 'mr-auto bg-[#0E1A2B] text-slate-200 border border-slate-700/60'
+              }`}
+            >
+              <div className="text-[10px] font-bold tracking-wider mb-1 opacity-70 uppercase">
+                {msg.sender}
+              </div>
+              <div className="whitespace-pre-wrap leading-relaxed">{msg.text}</div>
+            </div>
+          ))}
+          {loading && (
+            <div className="mr-auto bg-[#0E1A2B] p-3.5 rounded-lg text-emerald-400 text-xs font-mono animate-pulse border border-emerald-900/40">
+              [Node Server AI EcoPulse] Menganalisis data via Meta Hub...
+            </div>
+          )}
+        </div>
 
-      {/* INPUT FORM */}
-      <form onSubmit={sendMessage} className="w-full max-w-2xl flex gap-2 border-t border-slate-800/60 pt-4">
-        <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Enter luxury vehicle spec or eco-efficiency calculation request..." className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 text-white placeholder-slate-600 transition-colors" disabled={loading} />
-        <button type="submit" className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-slate-950 font-extrabold px-8 py-3 rounded-xl text-sm transition-all shadow-md shadow-emerald-500/10 uppercase tracking-wider disabled:opacity-50" disabled={loading}>Send</button>
-      </form>
+        <div className="flex gap-3 pt-3 border-t border-slate-800">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Enter luxury vehicle spec or eco-efficiency calculation request..."
+            className="flex-1 px-4 py-3 bg-[#050A10] border border-slate-800 rounded-lg text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition"
+            disabled={loading}
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={loading}
+            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 font-bold rounded-lg transition text-slate-950 text-xs tracking-widest uppercase disabled:opacity-50"
+          >
+            SEND
+          </button>
+        </div>
+      </div>
     </main>
   );
 }
