@@ -1,17 +1,42 @@
+
 import { NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { message } = await request.json();
+    const { message } = await req.json();
 
-    // Automatic response from the EcoPulse AI system
-    const aiReply = `Hello! EcoPulse AI successfully received your message: "${message}". The chat backend is now connected successfully and ready for further development!`;
+    // Memanggil API Meta Model (Muse)
+    const response = await fetch('https://api.meta.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.META_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'muse-wonder-1.0',
+        messages: [
+          {
+            role: 'system',
+            content: 'Anda adalah EcoPulse AI, asisten intelijen keberlanjutan otomotif mewah dan telemetri lingkungan.',
+          },
+          { role: 'user', content: message },
+        ],
+        temperature: 0.7,
+      }),
+    });
 
-    return NextResponse.json({ reply: aiReply });
-  } catch (error) {
-    // If a technical error occurs, ensure the response is still JSON so the web doesn't crash
+    if (!response.ok) {
+      throw new Error(`Meta API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const reply = data.choices[0]?.message?.content || 'Maaf, tidak ada respon dari Meta AI.';
+
+    return NextResponse.json({ reply });
+  } catch (error: any) {
+    console.error('Error handling chat API:', error);
     return NextResponse.json(
-      { error: 'Failed to process the message on the backend server.' },
+      { error: 'Gagal menghubungkan ke Meta Muse API' },
       { status: 500 }
     );
   }
