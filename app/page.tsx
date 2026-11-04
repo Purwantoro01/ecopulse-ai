@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen text-slate-100 flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950">
-      {/* Background Image Visual Online (Telemetri Lab 3D) */}
+      {/* Background Visual Laboratorium Hologram */}
       <div className="absolute inset-0 z-0">
         <img
           src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop"
