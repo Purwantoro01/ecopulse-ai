@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   try {
     const { message } = await req.json();
 
-    // Memanggil API Meta Model (Muse)
+    // Pemanggilan Meta Model API (Muse)
     const response = await fetch('https://api.meta.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
