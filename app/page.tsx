@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { Send, Bot, User, Sparkles, Activity } from 'lucide-react';
 
 export default function Home() {
@@ -28,10 +27,9 @@ export default function Home() {
       const data = await response.json();
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.reply || data.error || 'Respon diproses oleh EcoPulse AI Node.' },
+        { role: 'assistant', content: data.reply || 'Respon diproses oleh EcoPulse AI Node.' },
       ]);
     } catch (error) {
-      console.error('Chat request failed:', error);
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: 'Terjadi kesalahan koneksi ke server.' },
@@ -43,18 +41,19 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen text-slate-100 flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950">
-      {/* Background Visual Laboratorium Hologram */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop"
-          alt="EcoPulse AI Telemetry Lab Background"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center opacity-30 filter brightness-90"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/90" />
-      </div>
+      {/* Visual Background Lab 3D / Hologram Grid */}
+      <div 
+        className="absolute inset-0 z-0 opacity-40 pointer-events-none"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 60%),
+            linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 40px 40px, 40px 40px'
+        }}
+      />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Header Container */}
       <div className="relative z-10 text-center max-w-3xl mb-6 mt-4">
@@ -73,7 +72,7 @@ export default function Home() {
       </div>
 
       {/* Main Chat Box Container */}
-      <div className="relative z-10 w-full max-w-3xl bg-slate-900/85 backdrop-blur-md border border-emerald-500/30 rounded-2xl shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col h-[500px]">
+      <div className="relative z-10 w-full max-w-3xl bg-slate-900/90 backdrop-blur-xl border border-emerald-500/40 rounded-2xl shadow-[0_0_60px_rgba(16,185,129,0.15)] overflow-hidden flex flex-col h-[500px]">
         {/* Status Bar Top */}
         <div className="px-6 py-3 border-b border-slate-800/90 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-2">
